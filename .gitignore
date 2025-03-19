@@ -31,3 +31,16 @@ auth.json
 
 # PHP Storm
 .idea/
+
+/.phpunit.cache
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+/auth.json
+/.fleet
+/.idea
+/.nova
+/.vscode
+/.zed
