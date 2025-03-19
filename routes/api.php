@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/health-check', function () {
+// API health check route
+Route::get('/up', function () {
     return response()->json(['status' => 'ok']);
 });
