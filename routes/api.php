@@ -3,6 +3,6 @@
 use Illuminate\Support\Facades\Route;
 
 // API health check route
-Route::get('/up', function () {
+Route::middleware(['throttle:api'])->get('/up', function () {
     return response()->json(['status' => 'ok']);
 });
