@@ -1,0 +1,71 @@
+<?php
+
+namespace App\Models;
+
+use Carbon\Carbon;
+use Database\Factories\SecretFactory;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * @property string $id
+ * @property string $encrypted_secret
+ * @property string $encryption_iv
+ * @property Carbon $expires_at
+ * @method static SecretFactory factory(...$parameters)
+ * @method static Builder|Secret newModelQuery()
+ * @method static Builder|Secret newQuery()
+ * @method static Builder|Secret query()
+ * @method static Builder|Secret whereEncryptedSecret($value)
+ * @method static Builder|Secret whereEncryptionIv($value)
+ * @method static Builder|Secret whereExpiresAt($value)
+ * @method static Builder|Secret whereId($value)
+ */
+class Secret extends Model
+{
+    /** @use HasFactory<SecretFactory> */
+    use HasFactory;
+
+    protected $table = 'secrets';
+    protected $primaryKey = 'id';
+    public $incrementing = false;
+    protected $keyType = 'string';
+    protected $fillable = ['id', 'encrypted_secret', 'encryption_iv', 'expires_at'];
+    protected $casts = [
+        'expires_at' => 'datetime',
+    ];
+
+    /**
+     * Check if the secret has expired.
+     * @return bool
+     */
+    public function isExpired(): bool
+    {
+        return $this->expires_at->isPast();
+    }
+
+    /**
+     * Encrypt the secret using the provided key.
+     * @param string $secret
+     * @param string $key
+     */
+    public function encryptSecret(string $secret, string $key): void
+    {
+        $iv = random_bytes(16);
+        $encryptedSecret = openssl_encrypt($secret, 'aes-256-cbc', $key, 0, $iv);
+
+        $this->encrypted_secret = base64_encode($encryptedSecret);
+        $this->encryption_iv = base64_encode($iv);
+    }
+
+    /**
+     * Decrypt the secret using the provided key.
+     * @param string $key
+     * @return string
+     */
+    public function decryptSecret(string $key): string
+    {
+        return openssl_decrypt(base64_decode($this->encrypted_secret), 'aes-256-cbc', $key, 0, base64_decode($this->encryption_iv));
+    }
+}
