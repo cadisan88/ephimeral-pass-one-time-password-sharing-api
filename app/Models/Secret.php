@@ -7,6 +7,7 @@ use Database\Factories\SecretFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 /**
  * @property string $id
@@ -27,6 +28,7 @@ class Secret extends Model
     /** @use HasFactory<SecretFactory> */
     use HasFactory;
 
+    const DEFAULT_TTL = 60;
     protected $table = 'secrets';
     protected $primaryKey = 'id';
     public $incrementing = false;
@@ -35,6 +37,13 @@ class Secret extends Model
     protected $casts = [
         'expires_at' => 'datetime',
     ];
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->id = (string) Str::uuid();
+        $this->expires_at = Carbon::now()->addMinutes(self::DEFAULT_TTL);
+    }
 
     /**
      * Check if the secret has expired.
