@@ -76,9 +76,9 @@ class Secret extends Model
     /**
      * Decrypt the secret using the provided key.
      * @param string $key
-     * @return string
+     * @return false|string The decrypted secret on success or false on failure
      */
-    public function decryptSecret(string $key): string
+    public function decryptSecret(string $key): false|string
     {
         return openssl_decrypt(base64_decode($this->encrypted_secret), 'aes-256-cbc', $key, 0, base64_decode($this->encryption_iv));
     }
