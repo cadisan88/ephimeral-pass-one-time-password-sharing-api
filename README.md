@@ -22,9 +22,12 @@ POST /api/secrets
 {
   "password": "mySecret123",
   "passphrase": "optionalPassphrase",
-  "expires_in": 3600
+  "expires_in": 60
 }
 ```
+- Max length for `password` and `passphrase` is 255 characters.
+- `passphrase` is optional.
+- `expires_in` is in minutes (default: 60). Minimum 5 minutes.
 
 #### Response (if no passphrase):
 ```json
@@ -37,15 +40,15 @@ POST /api/secrets
 #### Response (if passphrase is set):
 ```json
 {
-  "url": "https://ephemeral-pass.io/api/secrets/abcd1234",
-  "note": "This secret requires a passphrase to decrypt.",
+  "url": "https://ephemeral-pass.io/api/secrets/abcd1234?passphrase=",
+  "note": "This secret requires the passphrase at the end of the URL to decrypt.",
   "expires_at": "2025-03-02T12:00:00Z"
 }
 ```
 
 ---
 
-### 2️⃣ Retrieve a Secret
+### 2️⃣ Retrieve a Secret without a passphrase
 
 ```http
 GET /api/secrets/{id}?token={decryption_key}
@@ -59,14 +62,7 @@ GET /api/secrets/{id}?token={decryption_key}
 ### 3️⃣ Decrypt with a Passphrase
 
 ```http
-POST /api/secrets/{id}/decrypt
-```
-
-#### Request Body:
-```json
-{
-  "passphrase": "userPassphrase"
-}
+GET /api/secrets/{id}?passphrase={userPassphrase}
 ```
 
 - If the passphrase is correct, returns the decrypted password.
@@ -76,5 +72,5 @@ POST /api/secrets/{id}/decrypt
 
 ## Security Features
 🔒 AES-256 Encryption – Ensures password confidentiality.  
-🔒 Self-Destructing Secrets – Data is wiped after first access.  
+🔒 Self-Destructing Secrets – Data is wiped after first access or after access when is expired.  
 🔒 HTTPS-Only – Protects against man-in-the-middle attacks.
