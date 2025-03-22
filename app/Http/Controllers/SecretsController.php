@@ -17,9 +17,9 @@ class SecretsController extends Controller
     public function createSecret(Request $request): JsonResponse
     {
         $request->validate([
-            'password' => 'required|string|min:1|max:255',
-            'passphrase' => 'nullable|string|min:1|max:255',
-            'expires_in' => 'nullable|integer|min:5',
+            'password' => 'required|string|min:1|max:' . Secret::MAX_SECRET_LENGTH,
+            'passphrase' => 'nullable|string|min:1|max:' . Secret::MAX_PASSPHRASE_LENGTH,
+            'expires_in' => 'nullable|integer|min:' . Secret::MIN_TTL . '|max:' . Secret::MAX_TTL,
         ]);
 
         $key = $request->input('passphrase', Str::random(32));
@@ -32,7 +32,7 @@ class SecretsController extends Controller
         if ($request->filled('passphrase')) {
             return response()->json([
                 'url' => url("/api/secrets/{$secret->id}?passphrase="),
-                'note' => 'This secret requires the passphrase at the end of the URL to decrypt.',
+                'note' => 'This secret requires the passphrase at the end of the URL to decrypt and must be provided by the recipient.',
                 'expires_at' => $secret->expires_at,
             ]);
         }
