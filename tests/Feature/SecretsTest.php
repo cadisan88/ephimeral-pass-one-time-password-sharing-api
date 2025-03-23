@@ -4,16 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\Secret;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Response;
 use Tests\TestCase;
 
 class SecretsTest extends TestCase
 {
     use RefreshDatabase;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-    }
 
     public function test_can_create_secret_with_auto_generated_token(): void
     {
@@ -21,13 +17,13 @@ class SecretsTest extends TestCase
             'password' => 'my-secret-password'
         ]);
 
-        $response->assertStatus(200)
+        $response->assertStatus(Response::HTTP_OK)
             ->assertJsonStructure([
                 'url',
                 'expires_at'
             ]);
 
-        $url= $response->json('url');
+        $url = $response->json('url');
         $this->assertStringContainsString(url("/api/secrets/" . Secret::first()->id . "?token="), $url);
         $this->assertDatabaseCount('secrets', 1);
     }
@@ -39,7 +35,7 @@ class SecretsTest extends TestCase
             'passphrase' => 'my-custom-passphrase'
         ]);
 
-        $response->assertStatus(200)
+        $response->assertStatus(Response::HTTP_OK)
             ->assertJsonStructure([
                 'url',
                 'note',
@@ -60,7 +56,7 @@ class SecretsTest extends TestCase
             'expires_in' => 60 // 60 minutes
         ]);
 
-        $response->assertStatus(200)
+        $response->assertStatus(Response::HTTP_OK)
             ->assertJsonStructure([
                 'url',
                 'expires_at'
@@ -76,7 +72,7 @@ class SecretsTest extends TestCase
     {
         $response = $this->postJson('/api/secrets', []);
 
-        $response->assertStatus(422)
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
             ->assertJsonValidationErrors(['password']);
     }
 
@@ -87,7 +83,7 @@ class SecretsTest extends TestCase
             'expires_in' => Secret::MAX_TTL + 1
         ]);
 
-        $response->assertStatus(422)
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY)
             ->assertJsonValidationErrors(['expires_in']);
     }
 
@@ -105,12 +101,9 @@ class SecretsTest extends TestCase
         // Then retrieve it using query parameters
         $response = $this->getJson("/api/secrets/{$secretId}?token={$token}");
 
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'secret',
-                'note'
-            ])
+        $response->assertStatus(Response::HTTP_OK)
             ->assertJsonFragment([
+                'password' => 'my-secret-password',
                 'note' => 'This secret has been deleted and can no longer be retrieved.'
             ]);
 
@@ -131,12 +124,9 @@ class SecretsTest extends TestCase
         // Then retrieve it using query parameters
         $response = $this->getJson("/api/secrets/{$secretId}?passphrase=my-custom-passphrase");
 
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'secret',
-                'note'
-            ])
+        $response->assertStatus(Response::HTTP_OK)
             ->assertJsonFragment([
+                'password' => 'my-secret-password',
                 'note' => 'This secret has been deleted and can no longer be retrieved.'
             ]);
 
@@ -156,7 +146,7 @@ class SecretsTest extends TestCase
         // Then try to retrieve it with invalid token
         $response = $this->getJson("/api/secrets/{$secretId}?token=invalid-token");
 
-        $response->assertStatus(401)
+        $response->assertStatus(Response::HTTP_UNAUTHORIZED)
             ->assertJsonFragment([
                 'error' => 'Invalid token or passphrase'
             ]);
@@ -177,7 +167,7 @@ class SecretsTest extends TestCase
         // Then try to retrieve it with both token and passphrase
         $response = $this->getJson("/api/secrets/{$secretId}?token=some-token&passphrase=some-passphrase");
 
-        $response->assertStatus(400)
+        $response->assertStatus(Response::HTTP_BAD_REQUEST)
             ->assertJsonFragment([
                 'error' => 'Only one parameter (token or passphrase) should be provided, not both'
             ]);
@@ -206,7 +196,7 @@ class SecretsTest extends TestCase
         // Then try to retrieve it
         $response = $this->getJson("/api/secrets/{$secret->id}?token={$token}");
 
-        $response->assertStatus(410)
+        $response->assertStatus(Response::HTTP_GONE)
             ->assertJsonFragment([
                 'error' => 'Secret has expired'
             ]);
@@ -216,7 +206,7 @@ class SecretsTest extends TestCase
     {
         $response = $this->getJson('/api/secrets/non-existent-id?token=any-token');
 
-        $response->assertStatus(404)
+        $response->assertStatus(Response::HTTP_NOT_FOUND)
             ->assertJsonFragment([
                 'error' => 'Secret not found'
             ]);
