@@ -80,7 +80,7 @@ class SecretsController extends Controller
         $secret->delete();
 
         return response()->json([
-            'secret' => $decryptedSecret,
+            'password' => $decryptedSecret,
             'note' => 'This secret has been deleted and can no longer be retrieved.',
         ]);
     }
