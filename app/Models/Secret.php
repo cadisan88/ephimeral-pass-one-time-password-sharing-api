@@ -28,7 +28,12 @@ class Secret extends Model
     /** @use HasFactory<SecretFactory> */
     use HasFactory;
 
-    const DEFAULT_TTL = 60;
+    public const MIN_TTL = 5; // 5 minutes
+    public const MAX_TTL = 60 * 24; // 1 day
+    public const DEFAULT_TTL = 60; // 1 hour
+    public const MAX_SECRET_LENGTH = 255;
+    public const MAX_PASSPHRASE_LENGTH = 255;
+
     protected $table = 'secrets';
     protected $primaryKey = 'id';
     public $incrementing = false;
@@ -71,9 +76,9 @@ class Secret extends Model
     /**
      * Decrypt the secret using the provided key.
      * @param string $key
-     * @return string
+     * @return false|string The decrypted secret on success or false on failure
      */
-    public function decryptSecret(string $key): string
+    public function decryptSecret(string $key): false|string
     {
         return openssl_decrypt(base64_decode($this->encrypted_secret), 'aes-256-cbc', $key, 0, base64_decode($this->encryption_iv));
     }

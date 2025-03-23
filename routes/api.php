@@ -10,3 +10,6 @@ Route::middleware(['throttle:api'])->get('/up', function () {
 
 // Create a new secret
 Route::middleware(['throttle:api'])->post('/secrets', [SecretsController::class, 'createSecret']);
+
+// Get a secret
+Route::middleware(['throttle:api'])->get('/secrets/{id}', [SecretsController::class, 'getSecret']);
