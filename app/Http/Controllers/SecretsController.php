@@ -53,11 +53,7 @@ class SecretsController extends Controller
 
         if ($request->filled('token') && $request->filled('passphrase')) {
             return response()->json([
-                'message' => 'Only one parameter (token or passphrase) should be provided, not both',
-                'errors' => [
-                    'token' => 'Only one parameter (token or passphrase) should be provided, not both',
-                    'passphrase' => 'Only one parameter (token or passphrase) should be provided, not both',
-                ],
+                'error' => 'Only one parameter (token or passphrase) should be provided, not both'
             ], Response::HTTP_BAD_REQUEST);
         }
 
